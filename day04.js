@@ -133,25 +133,20 @@ const solvePartTwo = guardData => {
   }
 
   return R.pipe(
-    R.mapObjIndexed((val, key) => {
-      // Group
-      const occurrences = R.pipe(
+    R.mapObjIndexed((val, key) =>
+      R.pipe(
         R.groupWith(R.equals),
         R.sort((a, b) => b.length - a.length),
-        R.map(val => {
-          return {
-            guard: R.head(val),
-            count: val.length
-          };
-        }),
-        R.head
-      )(val);
-
-      return {
-        minute: Number(key),
-        ...occurrences
-      };
-    }),
+        R.map(
+          R.applySpec({
+            guard: R.head,
+            count: R.length
+          })
+        ),
+        R.head,
+        R.merge({ minute: Number(key) })
+      )(val)
+    ),
     R.values,
     R.sortBy(R.prop("count")),
     R.last,
