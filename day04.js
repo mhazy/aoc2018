@@ -114,8 +114,51 @@ const solvePartOne = guardData => {
   return guard.id * mostFrequentMinute;
 };
 
-const solvePartTwo = events => {
-  return false;
+const solvePartTwo = guardData => {
+  let minuteOccurences = {};
+  let i, j, k;
+  const guards = Object.values(guardData);
+  for (i = 0; i < guards.length; i++) {
+    const minutes = Object.keys(guards[i].minutes);
+
+    for (j = 0; j < minutes.length; j++) {
+      if (minuteOccurences[minutes[j]] === undefined) {
+        minuteOccurences[minutes[j]] = [];
+      }
+      const occurences = guards[i].minutes[minutes[j]];
+      for (k = 0; k < occurences; k++) {
+        minuteOccurences[minutes[j]].push(guards[i].id);
+      }
+    }
+  }
+
+  return R.pipe(
+    R.mapObjIndexed((val, key) => {
+      // Group
+      const occurrences = R.pipe(
+        R.groupWith(R.equals),
+        R.sort((a, b) => b.length - a.length),
+        R.map(val => {
+          return {
+            guard: R.head(val),
+            count: val.length
+          };
+        }),
+        R.head
+      )(val);
+
+      return {
+        minute: Number(key),
+        ...occurrences
+      };
+    }),
+    R.values,
+    R.sortBy(R.prop("count")),
+    R.last,
+    R.pick(["minute", "guard"]),
+    R.values,
+    R.apply(R.multiply)
+  )(minuteOccurences);
 };
 
 // Input is pre-sorted
